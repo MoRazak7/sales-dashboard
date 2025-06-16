@@ -13,6 +13,8 @@
     .good { color: green; }
     .bad { color: red; }
     canvas { max-width: 100%; margin-top: 20px; }
+    .charts-container { display: flex; flex-wrap: wrap; gap: 20px; }
+    .chart-box { flex: 1; min-width: 300px; }
     table { width: 100%; margin-top: 30px; border-collapse: collapse; }
     th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
     th { background-color: #f0f0f0; }
@@ -34,7 +36,16 @@
 
   <h2>Progress</h2>
   <div id="summary"></div>
-  <canvas id="salesChart"></canvas>
+
+  <div class="charts-container">
+    <div class="chart-box">
+      <canvas id="salesChart"></canvas>
+    </div>
+    <div class="chart-box">
+      <canvas id="pieChart"></canvas>
+    </div>
+  </div>
+
   <div id="salesTableContainer"></div>
 
   <script>
@@ -128,7 +139,8 @@
         </p>
       `;
 
-      renderChart(dailyActual, dailyExpected);
+      renderChart(dailyActual.slice(0, currentDay), dailyExpected.slice(0, currentDay));
+      renderPieChart(totalSales, goal);
       renderTable(tableRows);
     }
 
@@ -182,23 +194,56 @@
                 return acc;
               }, []),
               borderWidth: 2,
-              fill: false
+              fill: false,
+              borderColor: 'green',
+              tension: 0.3
             },
             {
               label: 'Expected Sales',
               data: expected,
               borderWidth: 2,
               borderDash: [5, 5],
-              fill: false
+              fill: false,
+              borderColor: 'gray',
+              tension: 0.3
             }
           ]
         },
         options: {
           responsive: true,
+          animation: {
+            duration: 1000,
+            easing: 'easeOutQuart'
+          },
           scales: {
             y: {
               beginAtZero: true
             }
+          }
+        }
+      });
+    }
+
+    let pie;
+    function renderPieChart(actual, goal) {
+      const remainder = Math.max(goal - actual, 0);
+      if (pie) pie.destroy();
+      const pieCtx = document.getElementById('pieChart').getContext('2d');
+      pie = new Chart(pieCtx, {
+        type: 'pie',
+        data: {
+          labels: ['Achieved', 'Remaining'],
+          datasets: [{
+            data: [actual, remainder],
+            backgroundColor: ['green', 'red']
+          }]
+        },
+        options: {
+          responsive: true,
+          animation: {
+            animateScale: true,
+            duration: 1000,
+            easing: 'easeOutBounce'
           }
         }
       });
