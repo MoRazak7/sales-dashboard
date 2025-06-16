@@ -4,19 +4,22 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Sales Performance Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body { font-family: Arial, sans-serif; margin: 40px; }
     h1, h2 { color: #333; }
-    input, button { padding: 8px; margin: 5px; }
+    input, button, select { padding: 8px; margin: 5px; }
     .status { font-size: 1.2em; margin-top: 20px; }
     .good { color: green; }
     .bad { color: red; }
+    canvas { max-width: 100%; margin-top: 20px; }
   </style>
 </head>
 <body>
   <h1>Sales Performance Dashboard</h1>
-  <label for="goal">Monthly Goal ($): </label>
-  <input type="number" id="goal" /><br/>
+
+  <label for="month">Select Month: </label>
+  <select id="month"></select>
 
   <label for="date">Date: </label>
   <input type="date" id="date" />
@@ -27,15 +30,31 @@
 
   <h2>Progress</h2>
   <div id="summary"></div>
+  <canvas id="salesChart"></canvas>
 
   <script>
-    const goalInput = document.getElementById('goal');
+    const monthSelect = document.getElementById('month');
     const summaryDiv = document.getElementById('summary');
+    const months = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+    months.forEach((m, i) => {
+      const option = document.createElement('option');
+      option.value = i;
+      option.text = m;
+      monthSelect.appendChild(option);
+    });
+
+    monthSelect.value = new Date().getMonth();
+
+    function getDaysInMonth(year, month) {
+      return new Date(year, month + 1, 0).getDate();
+    }
 
     function addSales() {
       const date = document.getElementById('date').value;
       const sales = parseFloat(document.getElementById('sales').value);
-
       if (!date || isNaN(sales)) return alert('Enter a valid date and sales amount.');
 
       let data = JSON.parse(localStorage.getItem('salesData')) || {};
@@ -46,35 +65,86 @@
     }
 
     function updateDashboard() {
-      const goal = parseFloat(goalInput.value);
-      if (isNaN(goal)) return;
-
+      const selectedMonth = parseInt(monthSelect.value);
+      const year = new Date().getFullYear();
       const data = JSON.parse(localStorage.getItem('salesData')) || {};
+      const daysInMonth = getDaysInMonth(year, selectedMonth);
+      const goal = 40000;
       const today = new Date();
-      const currentDay = today.getDate();
-      const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
-      const expectedToDate = (goal / daysInMonth) * currentDay;
 
       let totalSales = 0;
+      let dailyActual = Array(daysInMonth).fill(0);
+
       for (let [key, val] of Object.entries(data)) {
         const d = new Date(key);
-        if (d.getMonth() === today.getMonth() && d.getFullYear() === today.getFullYear()) {
+        if (d.getMonth() === selectedMonth && d.getFullYear() === year) {
+          const dayIndex = d.getDate() - 1;
+          dailyActual[dayIndex] += val;
           totalSales += val;
         }
       }
 
+      let dailyExpected = Array(daysInMonth).fill(0);
+      for (let i = 0; i < daysInMonth; i++) {
+        dailyExpected[i] = (goal / daysInMonth) * (i + 1);
+      }
+
+      const currentDay = today.getMonth() === selectedMonth ? today.getDate() : daysInMonth;
+      const expectedToDate = dailyExpected[currentDay - 1] || 0;
       const delta = totalSales - expectedToDate;
 
       summaryDiv.innerHTML = `
         <p><strong>Total Sales:</strong> $${totalSales.toFixed(2)}</p>
-        <p><strong>Expected by Today:</strong> $${expectedToDate.toFixed(2)}</p>
+        <p><strong>Expected by Day ${currentDay}:</strong> $${expectedToDate.toFixed(2)}</p>
         <p class="status ${delta >= 0 ? 'good' : 'bad'}">
           <strong>${delta >= 0 ? 'Above Target by' : 'Below Target by'}:</strong> $${Math.abs(delta).toFixed(2)}
         </p>
       `;
+
+      renderChart(dailyActual, dailyExpected);
     }
 
-    goalInput.addEventListener('input', updateDashboard);
+    let chart;
+    function renderChart(actual, expected) {
+      const labels = actual.map((_, i) => `Day ${i + 1}`);
+
+      if (chart) chart.destroy();
+      const ctx = document.getElementById('salesChart').getContext('2d');
+      chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: 'Actual Sales',
+              data: actual.reduce((acc, val, i) => {
+                acc.push((acc[i - 1] || 0) + val);
+                return acc;
+              }, []),
+              borderWidth: 2,
+              fill: false
+            },
+            {
+              label: 'Expected Sales',
+              data: expected,
+              borderWidth: 2,
+              borderDash: [5, 5],
+              fill: false
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+    }
+
+    monthSelect.addEventListener('change', updateDashboard);
     window.onload = updateDashboard;
   </script>
 </body>
