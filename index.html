@@ -10,11 +10,11 @@
     h1, h2 { color: #333; }
     input, button, select { padding: 8px; margin: 5px; }
     .status { font-size: 1.2em; margin-top: 20px; }
-    .good { color: green; }
-    .bad { color: red; }
+    .good { color: #2e7d32; }
+    .bad { color: #c62828; }
     canvas { max-width: 100%; margin-top: 20px; }
     .charts-container { display: flex; flex-wrap: wrap; gap: 20px; }
-    .chart-box { flex: 1; min-width: 300px; }
+    .chart-box { flex: 1; min-width: 400px; }
     table { width: 100%; margin-top: 30px; border-collapse: collapse; }
     th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
     th { background-color: #f0f0f0; }
@@ -34,7 +34,7 @@
   <input type="number" id="sales" />
   <button onclick="addSales()">Add Sales</button>
 
-  <h2>Progress</h2>
+  <h2>Progress to $40,000 Revenue</h2>
   <div id="summary"></div>
 
   <div class="charts-container">
@@ -135,8 +135,7 @@
         <p><strong>Total Sales:</strong> $${totalSales.toFixed(2)}</p>
         <p><strong>Expected by Day ${currentDay}:</strong> $${expectedToDate.toFixed(2)}</p>
         <p class="status ${delta >= 0 ? 'good' : 'bad'}">
-          <strong>${delta >= 0 ? 'Above Target by' : 'Below Target by'}:</strong> $${Math.abs(delta).toFixed(2)}
-        </p>
+          <strong>${delta >= 0 ? 'Above Target by' : 'Below Target by'}:</strong> $${Math.abs(delta).toFixed(2)}</p>
       `;
 
       renderChart(dailyActual.slice(0, currentDay), dailyExpected.slice(0, currentDay));
@@ -195,7 +194,7 @@
               }, []),
               borderWidth: 2,
               fill: false,
-              borderColor: 'green',
+              borderColor: '#4caf50',
               tension: 0.3
             },
             {
@@ -204,7 +203,7 @@
               borderWidth: 2,
               borderDash: [5, 5],
               fill: false,
-              borderColor: 'gray',
+              borderColor: '#90a4ae',
               tension: 0.3
             }
           ]
@@ -235,11 +234,22 @@
           labels: ['Achieved', 'Remaining'],
           datasets: [{
             data: [actual, remainder],
-            backgroundColor: ['green', 'red']
+            backgroundColor: ['#81c784', '#ef9a9a']
           }]
         },
         options: {
           responsive: true,
+          plugins: {
+            tooltip: {
+              callbacks: {
+                label: function (context) {
+                  let value = context.raw;
+                  let percentage = ((value / goal) * 100).toFixed(1);
+                  return `${context.label}: $${value.toFixed(2)} (${percentage}%)`;
+                }
+              }
+            }
+          },
           animation: {
             animateScale: true,
             duration: 1000,
