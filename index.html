@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sales Performance Dashboard</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 40px; }
+    h1, h2 { color: #333; }
+    input, button { padding: 8px; margin: 5px; }
+    .status { font-size: 1.2em; margin-top: 20px; }
+    .good { color: green; }
+    .bad { color: red; }
+  </style>
+</head>
+<body>
+  <h1>Sales Performance Dashboard</h1>
+  <label for="goal">Monthly Goal ($): </label>
+  <input type="number" id="goal" /><br/>
+
+  <label for="date">Date: </label>
+  <input type="date" id="date" />
+
+  <label for="sales">Sales for the Day ($): </label>
+  <input type="number" id="sales" />
+  <button onclick="addSales()">Add Sales</button>
+
+  <h2>Progress</h2>
+  <div id="summary"></div>
+
+  <script>
+    const goalInput = document.getElementById('goal');
+    const summaryDiv = document.getElementById('summary');
+
+    function addSales() {
+      const date = document.getElementById('date').value;
+      const sales = parseFloat(document.getElementById('sales').value);
+
+      if (!date || isNaN(sales)) return alert('Enter a valid date and sales amount.');
+
+      let data = JSON.parse(localStorage.getItem('salesData')) || {};
+      data[date] = sales;
+      localStorage.setItem('salesData', JSON.stringify(data));
+
+      updateDashboard();
+    }
+
+    function updateDashboard() {
+      const goal = parseFloat(goalInput.value);
+      if (isNaN(goal)) return;
+
+      const data = JSON.parse(localStorage.getItem('salesData')) || {};
+      const today = new Date();
+      const currentDay = today.getDate();
+      const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+      const expectedToDate = (goal / daysInMonth) * currentDay;
+
+      let totalSales = 0;
+      for (let [key, val] of Object.entries(data)) {
+        const d = new Date(key);
+        if (d.getMonth() === today.getMonth() && d.getFullYear() === today.getFullYear()) {
+          totalSales += val;
+        }
+      }
+
+      const delta = totalSales - expectedToDate;
+
+      summaryDiv.innerHTML = `
+        <p><strong>Total Sales:</strong> $${totalSales.toFixed(2)}</p>
+        <p><strong>Expected by Today:</strong> $${expectedToDate.toFixed(2)}</p>
+        <p class="status ${delta >= 0 ? 'good' : 'bad'}">
+          <strong>${delta >= 0 ? 'Above Target by' : 'Below Target by'}:</strong> $${Math.abs(delta).toFixed(2)}
+        </p>
+      `;
+    }
+
+    goalInput.addEventListener('input', updateDashboard);
+    window.onload = updateDashboard;
+  </script>
+</body>
+</html>
