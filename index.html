@@ -14,7 +14,8 @@
     .bad { color: #c62828; }
     canvas { max-width: 100%; margin-top: 20px; }
     .charts-container { display: flex; flex-wrap: wrap; gap: 20px; }
-    .chart-box { flex: 1; min-width: 400px; }
+    .chart-box { flex: 1; min-width: 300px; max-width: 500px; }
+    #pieChart { max-height: 300px; max-width: 300px; margin: auto; }
     table { width: 100%; margin-top: 30px; border-collapse: collapse; }
     th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
     th { background-color: #f0f0f0; }
@@ -143,38 +144,6 @@
       renderTable(tableRows);
     }
 
-    function renderTable(rows) {
-      if (rows.length === 0) {
-        tableContainer.innerHTML = '<p>No entries yet for this month.</p>';
-        return;
-      }
-
-      rows.sort((a, b) => new Date(a.date) - new Date(b.date));
-
-      let tableHTML = `
-        <h2>Sales Entries</h2>
-        <table>
-          <thead>
-            <tr><th>Date</th><th>Sales Amount ($)</th><th>Actions</th></tr>
-          </thead>
-          <tbody>
-            ${rows.map(row => `
-              <tr>
-                <td>${row.date}</td>
-                <td>${row.amount.toFixed(2)}</td>
-                <td>
-                  <button class="small-btn" onclick="editEntry('${row.date}')">Edit</button>
-                  <button class="small-btn" onclick="deleteEntry('${row.date}')">Delete</button>
-                </td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      `;
-
-      tableContainer.innerHTML = tableHTML;
-    }
-
     let chart;
     function renderChart(actual, expected) {
       const labels = actual.map((_, i) => `Day ${i + 1}`);
@@ -194,7 +163,7 @@
               }, []),
               borderWidth: 2,
               fill: false,
-              borderColor: '#4caf50',
+              borderColor: '#66bb6a',
               tension: 0.3
             },
             {
@@ -203,7 +172,7 @@
               borderWidth: 2,
               borderDash: [5, 5],
               fill: false,
-              borderColor: '#90a4ae',
+              borderColor: '#b0bec5',
               tension: 0.3
             }
           ]
@@ -234,7 +203,7 @@
           labels: ['Achieved', 'Remaining'],
           datasets: [{
             data: [actual, remainder],
-            backgroundColor: ['#81c784', '#ef9a9a']
+            backgroundColor: ['#66bb6a', '#ef5350']
           }]
         },
         options: {
