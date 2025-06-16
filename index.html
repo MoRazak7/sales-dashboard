@@ -20,6 +20,22 @@
     th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
     th { background-color: #f0f0f0; }
     button.small-btn { padding: 4px 8px; font-size: 0.9em; }
+
+    @media (max-width: 600px) {
+      body { margin: 10px; }
+      label, input, select, button {
+        display: block;
+        width: 100%;
+        margin-bottom: 10px;
+      }
+      .chart-box {
+        min-width: 100% !important;
+      }
+      #pieChart {
+        max-height: 200px;
+        max-width: 200px;
+      }
+    }
   </style>
 </head>
 <body>
