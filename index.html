@@ -1,214 +1,235 @@
-<script>
-  const monthSelect = document.getElementById('month');
-  const summaryDiv = document.getElementById('summary');
-  const tableContainer = document.getElementById('salesTableContainer');
-  const months = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
-  ];
-  months.forEach((m, i) => {
-    const option = document.createElement('option');
-    option.value = i;
-    option.text = m;
-    monthSelect.appendChild(option);
-  });
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sales Performance Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 40px; }
+    h1, h2 { color: #333; }
+    input, button, select { padding: 8px; margin: 5px; }
+    .status { font-size: 1.2em; margin-top: 20px; }
+    .good { color: #2e7d32; }
+    .bad { color: #c62828; }
+    canvas { max-width: 100%; margin-top: 20px; }
+    .charts-container { display: flex; flex-wrap: wrap; gap: 20px; }
+    .chart-box { flex: 1; min-width: 300px; max-width: 500px; }
+    #pieChart { max-height: 300px; max-width: 300px; margin: auto; }
+    table { width: 100%; margin-top: 30px; border-collapse: collapse; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+    th { background-color: #f0f0f0; }
+    button.small-btn { padding: 4px 8px; font-size: 0.9em; }
+  </style>
+</head>
+<body>
+  <h1>Sales Performance Dashboard</h1>
 
-  monthSelect.value = new Date().getMonth();
+  <label for="month">Select Month: </label>
+  <select id="month"></select>
 
-  function getDaysInMonth(year, month) {
-    return new Date(year, month + 1, 0).getDate();
-  }
+  <label for="date">Date: </label>
+  <input type="date" id="date" />
 
-  function addSales() {
-    const date = document.getElementById('date').value;
-    const sales = parseFloat(document.getElementById('sales').value);
-    if (!date || isNaN(sales)) return alert('Enter a valid date and sales amount.');
+  <label for="sales">Sales for the Day ($): </label>
+  <input type="number" id="sales" />
+  <button onclick="addSales()">Add Sales</button>
 
-    let data = JSON.parse(localStorage.getItem('salesData')) || {};
-    data[date] = sales;
-    localStorage.setItem('salesData', JSON.stringify(data));
+  <h2>Progress to $40,000 Revenue</h2>
+  <div id="summary"></div>
 
-    updateDashboard();
-  }
+  <div class="charts-container">
+    <div class="chart-box">
+      <canvas id="salesChart"></canvas>
+    </div>
+    <div class="chart-box">
+      <canvas id="pieChart"></canvas>
+    </div>
+  </div>
 
-  function editEntry(date) {
-    const data = JSON.parse(localStorage.getItem('salesData')) || {};
-    const newAmount = prompt(`Edit sales amount for ${date}:`, data[date]);
-    if (newAmount !== null) {
-      data[date] = parseFloat(newAmount);
+  <div id="salesTableContainer"></div>
+
+  <script>
+    const monthSelect = document.getElementById('month');
+    const summaryDiv = document.getElementById('summary');
+    const tableContainer = document.getElementById('salesTableContainer');
+    const months = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+    months.forEach((m, i) => {
+      const option = document.createElement('option');
+      option.value = i;
+      option.text = m;
+      monthSelect.appendChild(option);
+    });
+
+    monthSelect.value = new Date().getMonth();
+
+    function getDaysInMonth(year, month) {
+      return new Date(year, month + 1, 0).getDate();
+    }
+
+    function addSales() {
+      const date = document.getElementById('date').value;
+      const sales = parseFloat(document.getElementById('sales').value);
+      if (!date || isNaN(sales)) return alert('Enter a valid date and sales amount.');
+
+      let data = JSON.parse(localStorage.getItem('salesData')) || {};
+      data[date] = sales;
       localStorage.setItem('salesData', JSON.stringify(data));
+
       updateDashboard();
     }
-  }
 
-  function deleteEntry(date) {
-    const data = JSON.parse(localStorage.getItem('salesData')) || {};
-    if (confirm(`Are you sure you want to delete the entry for ${date}?`)) {
-      delete data[date];
-      localStorage.setItem('salesData', JSON.stringify(data));
-      updateDashboard();
-    }
-  }
-
-  function updateDashboard() {
-    const selectedMonth = parseInt(monthSelect.value);
-    const year = new Date().getFullYear();
-    const data = JSON.parse(localStorage.getItem('salesData')) || {};
-    const daysInMonth = getDaysInMonth(year, selectedMonth);
-    const goal = 40000;
-    const today = new Date();
-
-    let totalSales = 0;
-    let dailyActual = Array(daysInMonth).fill(0);
-    let tableRows = [];
-
-    for (let [key, val] of Object.entries(data)) {
-      const d = new Date(key);
-      if (d.getMonth() === selectedMonth && d.getFullYear() === year) {
-        const dayIndex = d.getDate() - 1;
-        dailyActual[dayIndex] += val;
-        totalSales += val;
-        tableRows.push({ date: key, amount: val });
+    function editEntry(date) {
+      const data = JSON.parse(localStorage.getItem('salesData')) || {};
+      const newAmount = prompt(`Edit sales amount for ${date}:`, data[date]);
+      if (newAmount !== null) {
+        data[date] = parseFloat(newAmount);
+        localStorage.setItem('salesData', JSON.stringify(data));
+        updateDashboard();
       }
     }
 
-    let dailyExpected = Array(daysInMonth).fill(0);
-    for (let i = 0; i < daysInMonth; i++) {
-      dailyExpected[i] = (goal / daysInMonth) * (i + 1);
+    function deleteEntry(date) {
+      const data = JSON.parse(localStorage.getItem('salesData')) || {};
+      if (confirm(`Are you sure you want to delete the entry for ${date}?`)) {
+        delete data[date];
+        localStorage.setItem('salesData', JSON.stringify(data));
+        updateDashboard();
+      }
     }
 
-    const currentDay = today.getMonth() === selectedMonth ? today.getDate() : daysInMonth;
-    const expectedToDate = dailyExpected[currentDay - 1] || 0;
-    const delta = totalSales - expectedToDate;
+    function updateDashboard() {
+      const selectedMonth = parseInt(monthSelect.value);
+      const year = new Date().getFullYear();
+      const data = JSON.parse(localStorage.getItem('salesData')) || {};
+      const daysInMonth = getDaysInMonth(year, selectedMonth);
+      const goal = 40000;
+      const today = new Date();
 
-    summaryDiv.innerHTML = `
-      <p><strong>Total Sales:</strong> $${totalSales.toFixed(2)}</p>
-      <p><strong>Expected by Day ${currentDay}:</strong> $${expectedToDate.toFixed(2)}</p>
-      <p class="status ${delta >= 0 ? 'good' : 'bad'}">
-        <strong>${delta >= 0 ? 'Above Target by' : 'Below Target by'}:</strong> $${Math.abs(delta).toFixed(2)}</p>
-    `;
+      let totalSales = 0;
+      let dailyActual = Array(daysInMonth).fill(0);
+      let tableRows = [];
 
-    renderChart(dailyActual.slice(0, currentDay), dailyExpected.slice(0, currentDay));
-    renderPieChart(totalSales, goal);
-    renderTable(tableRows);
-  }
-
-  function renderTable(rows) {
-    if (rows.length === 0) {
-      tableContainer.innerHTML = '<p>No entries yet for this month.</p>';
-      return;
-    }
-
-    rows.sort((a, b) => new Date(a.date) - new Date(b.date));
-
-    let tableHTML = `
-      <h2>Sales Entries</h2>
-      <table>
-        <thead>
-          <tr><th>Date</th><th>Sales Amount ($)</th><th>Actions</th></tr>
-        </thead>
-        <tbody>
-          ${rows.map(row => `
-            <tr>
-              <td>${row.date}</td>
-              <td>${row.amount.toFixed(2)}</td>
-              <td>
-                <button class="small-btn" onclick="editEntry('${row.date}')">Edit</button>
-                <button class="small-btn" onclick="deleteEntry('${row.date}')">Delete</button>
-              </td>
-            </tr>
-          `).join('')}
-        </tbody>
-      </table>
-    `;
-
-    tableContainer.innerHTML = tableHTML;
-  }
-
-  let chart;
-  function renderChart(actual, expected) {
-    const labels = actual.map((_, i) => `Day ${i + 1}`);
-
-    if (chart) chart.destroy();
-    const ctx = document.getElementById('salesChart').getContext('2d');
-    chart = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels,
-        datasets: [
-          {
-            label: 'Actual Sales',
-            data: actual.reduce((acc, val, i) => {
-              acc.push((acc[i - 1] || 0) + val);
-              return acc;
-            }, []),
-            borderWidth: 2,
-            fill: false,
-            borderColor: '#66bb6a',
-            tension: 0.3
-          },
-          {
-            label: 'Expected Sales',
-            data: expected,
-            borderWidth: 2,
-            borderDash: [5, 5],
-            fill: false,
-            borderColor: '#b0bec5',
-            tension: 0.3
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        animation: {
-          duration: 1000,
-          easing: 'easeOutQuart'
-        },
-        scales: {
-          y: {
-            beginAtZero: true
-          }
+      for (let [key, val] of Object.entries(data)) {
+        const d = new Date(key);
+        if (d.getMonth() === selectedMonth && d.getFullYear() === year) {
+          const dayIndex = d.getDate() - 1;
+          dailyActual[dayIndex] += val;
+          totalSales += val;
+          tableRows.push({ date: key, amount: val });
         }
       }
-    });
-  }
 
-  let pie;
-  function renderPieChart(actual, goal) {
-    const remainder = Math.max(goal - actual, 0);
-    if (pie) pie.destroy();
-    const pieCtx = document.getElementById('pieChart').getContext('2d');
-    pie = new Chart(pieCtx, {
-      type: 'pie',
-      data: {
-        labels: ['Achieved', 'Remaining'],
-        datasets: [{
-          data: [actual, remainder],
-          backgroundColor: ['#66bb6a', '#ef5350']
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          tooltip: {
-            callbacks: {
-              label: function (context) {
-                let value = context.raw;
-                let percentage = ((value / goal) * 100).toFixed(1);
-                return `${context.label}: $${value.toFixed(2)} (${percentage}%)`;
-              }
+      let dailyExpected = Array(daysInMonth).fill(0);
+      for (let i = 0; i < daysInMonth; i++) {
+        dailyExpected[i] = (goal / daysInMonth) * (i + 1);
+      }
+
+      const currentDay = today.getMonth() === selectedMonth ? today.getDate() : daysInMonth;
+      const expectedToDate = dailyExpected[currentDay - 1] || 0;
+      const delta = totalSales - expectedToDate;
+
+      summaryDiv.innerHTML = `
+        <p><strong>Total Sales:</strong> $${totalSales.toFixed(2)}</p>
+        <p><strong>Expected by Day ${currentDay}:</strong> $${expectedToDate.toFixed(2)}</p>
+        <p class="status ${delta >= 0 ? 'good' : 'bad'}">
+          <strong>${delta >= 0 ? 'Above Target by' : 'Below Target by'}:</strong> $${Math.abs(delta).toFixed(2)}</p>
+      `;
+
+      renderChart(dailyActual.slice(0, currentDay), dailyExpected.slice(0, currentDay));
+      renderPieChart(totalSales, goal);
+      renderTable(tableRows);
+    }
+
+    let chart;
+    function renderChart(actual, expected) {
+      const labels = actual.map((_, i) => `Day ${i + 1}`);
+
+      if (chart) chart.destroy();
+      const ctx = document.getElementById('salesChart').getContext('2d');
+      chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: 'Actual Sales',
+              data: actual.reduce((acc, val, i) => {
+                acc.push((acc[i - 1] || 0) + val);
+                return acc;
+              }, []),
+              borderWidth: 2,
+              fill: false,
+              borderColor: '#66bb6a',
+              tension: 0.3
+            },
+            {
+              label: 'Expected Sales',
+              data: expected,
+              borderWidth: 2,
+              borderDash: [5, 5],
+              fill: false,
+              borderColor: '#b0bec5',
+              tension: 0.3
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          animation: {
+            duration: 1000,
+            easing: 'easeOutQuart'
+          },
+          scales: {
+            y: {
+              beginAtZero: true
             }
           }
-        },
-        animation: {
-          animateScale: true,
-          duration: 1000,
-          easing: 'easeOutBounce'
         }
-      }
-    });
-  }
+      });
+    }
 
-  monthSelect.addEventListener('change', updateDashboard);
-  window.onload = updateDashboard;
-</script>
+    let pie;
+    function renderPieChart(actual, goal) {
+      const remainder = Math.max(goal - actual, 0);
+      if (pie) pie.destroy();
+      const pieCtx = document.getElementById('pieChart').getContext('2d');
+      pie = new Chart(pieCtx, {
+        type: 'pie',
+        data: {
+          labels: ['Achieved', 'Remaining'],
+          datasets: [{
+            data: [actual, remainder],
+            backgroundColor: ['#66bb6a', '#ef5350']
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            tooltip: {
+              callbacks: {
+                label: function (context) {
+                  let value = context.raw;
+                  let percentage = ((value / goal) * 100).toFixed(1);
+                  return `${context.label}: $${value.toFixed(2)} (${percentage}%)`;
+                }
+              }
+            }
+          },
+          animation: {
+            animateScale: true,
+            duration: 1000,
+            easing: 'easeOutBounce'
+          }
+        }
+      });
+    }
+
+    monthSelect.addEventListener('change', updateDashboard);
+    window.onload = updateDashboard;
+  </script>
+</body>
+</html>
