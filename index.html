@@ -13,6 +13,10 @@
     .good { color: green; }
     .bad { color: red; }
     canvas { max-width: 100%; margin-top: 20px; }
+    table { width: 100%; margin-top: 30px; border-collapse: collapse; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+    th { background-color: #f0f0f0; }
+    button.small-btn { padding: 4px 8px; font-size: 0.9em; }
   </style>
 </head>
 <body>
@@ -31,10 +35,12 @@
   <h2>Progress</h2>
   <div id="summary"></div>
   <canvas id="salesChart"></canvas>
+  <div id="salesTableContainer"></div>
 
   <script>
     const monthSelect = document.getElementById('month');
     const summaryDiv = document.getElementById('summary');
+    const tableContainer = document.getElementById('salesTableContainer');
     const months = [
       'January', 'February', 'March', 'April', 'May', 'June',
       'July', 'August', 'September', 'October', 'November', 'December'
@@ -64,6 +70,25 @@
       updateDashboard();
     }
 
+    function editEntry(date) {
+      const data = JSON.parse(localStorage.getItem('salesData')) || {};
+      const newAmount = prompt(`Edit sales amount for ${date}:`, data[date]);
+      if (newAmount !== null) {
+        data[date] = parseFloat(newAmount);
+        localStorage.setItem('salesData', JSON.stringify(data));
+        updateDashboard();
+      }
+    }
+
+    function deleteEntry(date) {
+      const data = JSON.parse(localStorage.getItem('salesData')) || {};
+      if (confirm(`Are you sure you want to delete the entry for ${date}?`)) {
+        delete data[date];
+        localStorage.setItem('salesData', JSON.stringify(data));
+        updateDashboard();
+      }
+    }
+
     function updateDashboard() {
       const selectedMonth = parseInt(monthSelect.value);
       const year = new Date().getFullYear();
@@ -74,6 +99,7 @@
 
       let totalSales = 0;
       let dailyActual = Array(daysInMonth).fill(0);
+      let tableRows = [];
 
       for (let [key, val] of Object.entries(data)) {
         const d = new Date(key);
@@ -81,6 +107,7 @@
           const dayIndex = d.getDate() - 1;
           dailyActual[dayIndex] += val;
           totalSales += val;
+          tableRows.push({ date: key, amount: val });
         }
       }
 
@@ -102,6 +129,39 @@
       `;
 
       renderChart(dailyActual, dailyExpected);
+      renderTable(tableRows);
+    }
+
+    function renderTable(rows) {
+      if (rows.length === 0) {
+        tableContainer.innerHTML = '<p>No entries yet for this month.</p>';
+        return;
+      }
+
+      rows.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+      let tableHTML = `
+        <h2>Sales Entries</h2>
+        <table>
+          <thead>
+            <tr><th>Date</th><th>Sales Amount ($)</th><th>Actions</th></tr>
+          </thead>
+          <tbody>
+            ${rows.map(row => `
+              <tr>
+                <td>${row.date}</td>
+                <td>${row.amount.toFixed(2)}</td>
+                <td>
+                  <button class="small-btn" onclick="editEntry('${row.date}')">Edit</button>
+                  <button class="small-btn" onclick="deleteEntry('${row.date}')">Delete</button>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+
+      tableContainer.innerHTML = tableHTML;
     }
 
     let chart;
