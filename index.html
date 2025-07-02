@@ -66,25 +66,6 @@
   <div id="salesTableContainer"></div>
 
   <script>
-  function downloadCSV() {
-    const data = JSON.parse(localStorage.getItem('salesData')) || {};
-    let csvContent = 'Date,Sales\n';
-    for (const [date, amount] of Object.entries(data)) {
-      csvContent += `${date},${amount}\n`;
-    }
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', 'sales_data.csv');
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  }
-
-  // (Include the rest of your existing script code here, such as updateDashboard(), renderChart(), etc.)
-
   const monthSelect = document.getElementById('month');
   const summaryDiv = document.getElementById('summary');
   const tableContainer = document.getElementById('salesTableContainer');
@@ -138,11 +119,10 @@
 
   function updateDashboard() {
     const selectedMonth = parseInt(monthSelect.value);
-    const year = new Date().getFullYear();
     const data = JSON.parse(localStorage.getItem('salesData')) || {};
-    const daysInMonth = getDaysInMonth(year, selectedMonth);
-    const goal = 40000;
     const today = new Date();
+    const daysInMonth = 31; // Use 31 to cover all months for consistent chart axes
+    const goal = 40000;
 
     let totalSales = 0;
     let dailyActual = Array(daysInMonth).fill(0);
@@ -150,7 +130,7 @@
 
     for (let [key, val] of Object.entries(data)) {
       const d = new Date(key);
-      if (d.getMonth() === selectedMonth && d.getFullYear() === year) {
+      if (d.getMonth() === selectedMonth) {
         const dayIndex = d.getDate() - 1;
         dailyActual[dayIndex] += val;
         totalSales += val;
@@ -164,14 +144,15 @@
     }
 
     const currentDay = today.getMonth() === selectedMonth ? today.getDate() : daysInMonth;
-    const expectedToDate = dailyExpected[currentDay - 1] || 0;
+    const expectedToDate = dailyExpected[Math.max(currentDay - 1, 0)];
     const delta = totalSales - expectedToDate;
 
     summaryDiv.innerHTML = `
       <p><strong>Total Sales:</strong> $${totalSales.toFixed(2)}</p>
       <p><strong>Expected by Day ${currentDay}:</strong> $${expectedToDate.toFixed(2)}</p>
       <p class="status ${delta >= 0 ? 'good' : 'bad'}">
-        <strong>${delta >= 0 ? 'Above Target by' : 'Below Target by'}:</strong> $${Math.abs(delta).toFixed(2)}</p>
+        <strong>${delta >= 0 ? 'Above Target by' : 'Below Target by'}:</strong> $${Math.abs(delta).toFixed(2)}
+      </p>
     `;
 
     renderChart(dailyActual.slice(0, currentDay), dailyExpected.slice(0, currentDay));
