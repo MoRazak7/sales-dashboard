@@ -227,82 +227,121 @@ summaryDiv.innerHTML = `
 
   let salesChart;
   function renderSalesChart(actual, expected) {
-    const labels = actual.map((_, i) => `Day ${i + 1}`);
+  const labels = actual.map((_, i) => `Day ${i + 1}`);
 
-    if (salesChart) salesChart.destroy();
-    const ctx = document.getElementById('salesChart').getContext('2d');
-    salesChart = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels,
-        datasets: [
-          {
-            label: 'Actual Sales',
-            data: actual.reduce((acc, val, i) => {
-              acc.push((acc[i - 1] || 0) + val);
-              return acc;
-            }, []),
-            borderWidth: 2,
-            fill: false,
-            borderColor: '#66bb6a',
-            tension: 0.3
-          },
-          {
-            label: 'Expected Sales',
-            data: expected,
-            borderWidth: 2,
-            borderDash: [5, 5],
-            fill: false,
-            borderColor: '#b0bec5',
-            tension: 0.3
+  if (salesChart) salesChart.destroy();
+  const ctx = document.getElementById('salesChart').getContext('2d');
+  salesChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Actual Sales',
+          data: actual.reduce((acc, val, i) => {
+            acc.push((acc[i - 1] || 0) + val);
+            return acc;
+          }, []),
+          borderWidth: 2,
+          fill: false,
+          borderColor: '#66bb6a',
+          tension: 0.3
+        },
+        {
+          label: 'Expected Sales',
+          data: expected,
+          borderWidth: 2,
+          borderDash: [5, 5],
+          fill: false,
+          borderColor: '#b0bec5',
+          tension: 0.3
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      animation: {
+        x: {
+          type: 'number',
+          easing: 'linear',
+          duration: 1500,
+          from: NaN,
+          delay(ctx) {
+            return ctx.index * 50;
           }
-        ]
+        },
+        y: {
+          type: 'number',
+          easing: 'easeOutQuart',
+          duration: 1500
+        }
       },
-      options: {
-        responsive: true,
-        animation: { duration: 1000, easing: 'easeOutQuart' },
-        scales: { y: { beginAtZero: true } }
-      }
-    });
-  }
+      scales: { y: { beginAtZero: true } }
+    }
+  });
+}
+
 
   let aamptChart;
-  function renderAAMPTChart(aamptData, aamptGoal) {
-    const labels = aamptData.map((_, i) => `Day ${i + 1}`);
+ function renderAAMPTChart(aamptData, aamptGoal) {
+  const labels = aamptData.map((_, i) => `Day ${i + 1}`);
 
-    if (aamptChart) aamptChart.destroy();
-    const ctx = document.getElementById('aamptChart').getContext('2d');
-    aamptChart = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels,
-        datasets: [
-          {
-            label: 'Daily AAMPT',
-            data: aamptData,
-            borderWidth: 2,
-            fill: false,
-            borderColor: '#42a5f5',
-            tension: 0.3
-          },
-          {
-            label: 'AAMPT Goal',
-            data: Array(aamptData.length).fill(aamptGoal),
-            borderWidth: 1,
-            borderDash: [2, 2],
-            fill: false,
-            borderColor: '#ef5350',
-            tension: 0.3
+  if (aamptChart) aamptChart.destroy();
+  const ctx = document.getElementById('aamptChart').getContext('2d');
+  aamptChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Daily AAMPT',
+          data: aamptData,
+          borderWidth: 2,
+          fill: false,
+          borderColor: '#42a5f5',
+          tension: 0.3
+        },
+        {
+          label: 'AAMPT Goal',
+          data: Array(aamptData.length).fill(aamptGoal),
+          borderWidth: 1,
+          borderDash: [2, 2],
+          fill: false,
+          borderColor: '#ef5350',
+          tension: 0.3
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      animation: {
+        x: {
+          type: 'number',
+          easing: 'linear',
+          duration: 1500,
+          from: NaN,
+          delay(ctx) {
+            return ctx.index * 50;
           }
-        ]
+        },
+        y: {
+          type: 'number',
+          easing: 'easeOutQuart',
+          duration: 1500
+        }
       },
-      options: {
-        responsive: true,
-        animation: { duration: 1000, easing: 'easeOutQuart' },
-        scales: { y: { beginAtZero: true } }
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: 'AAMPT ($)'
+          }
+        }
       }
-    });
-  }
+    }
+  });
+}
 
   let pie;
   function renderPieChart(actual, goal) {
