@@ -121,7 +121,7 @@
     const selectedMonth = parseInt(monthSelect.value);
     const data = JSON.parse(localStorage.getItem('salesData')) || {};
     const today = new Date();
-    const daysInMonth = 31; // Use 31 to cover all months for consistent chart axes
+    const daysInMonth = 31;
     const goal = 40000;
 
     let totalSales = 0;
@@ -129,9 +129,13 @@
     let tableRows = [];
 
     for (let [key, val] of Object.entries(data)) {
-      const d = new Date(key);
-      if (d.getMonth() === selectedMonth) {
-        const dayIndex = d.getDate() - 1;
+      const parts = key.split("-");
+      const entryYear = parseInt(parts[0], 10);
+      const entryMonth = parseInt(parts[1], 10) - 1; // zero-based
+      const entryDay = parseInt(parts[2], 10);
+
+      if (entryMonth === selectedMonth) {
+        const dayIndex = entryDay - 1;
         dailyActual[dayIndex] += val;
         totalSales += val;
         tableRows.push({ date: key, amount: val });
