@@ -65,7 +65,7 @@
 
   <div id="salesTableContainer"></div>
 
- <script>
+<script>
   const monthSelect = document.getElementById('month');
   const summaryDiv = document.getElementById('summary');
   const tableContainer = document.getElementById('salesTableContainer');
@@ -89,13 +89,10 @@
   function addSales() {
     const date = document.getElementById('date').value;
     const sales = parseFloat(document.getElementById('sales').value);
-    const aampt = parseFloat(document.getElementById('aampt').value);
-    if (!date || isNaN(sales) || isNaN(aampt)) {
-      return alert('Please enter a valid date, sales amount, and AAMPT.');
-    }
+    if (!date || isNaN(sales)) return alert('Enter a valid date and sales amount.');
 
     let data = JSON.parse(localStorage.getItem('salesData')) || {};
-    data[date] = { sales, aampt };
+    data[date] = sales;
     localStorage.setItem('salesData', JSON.stringify(data));
 
     updateDashboard();
@@ -103,10 +100,9 @@
 
   function editEntry(date) {
     const data = JSON.parse(localStorage.getItem('salesData')) || {};
-    const newSales = prompt(`Edit sales amount for ${date}:`, data[date].sales);
-    const newAAMPT = prompt(`Edit AAMPT for ${date}:`, data[date].aampt);
-    if (newSales !== null && newAAMPT !== null) {
-      data[date] = { sales: parseFloat(newSales), aampt: parseFloat(newAAMPT) };
+    const newAmount = prompt(`Edit sales amount for ${date}:`, data[date]);
+    if (newAmount !== null) {
+      data[date] = parseFloat(newAmount);
       localStorage.setItem('salesData', JSON.stringify(data));
       updateDashboard();
     }
@@ -127,28 +123,22 @@
     const today = new Date();
     const daysInMonth = 31;
     const goal = 40000;
-    const aamptGoal = 2.00;
 
     let totalSales = 0;
     let dailyActual = Array(daysInMonth).fill(0);
-    let dailyAAMPT = Array(daysInMonth).fill(null);
-    let aamptSum = 0;
-    let aamptCount = 0;
     let tableRows = [];
 
     for (let [key, val] of Object.entries(data)) {
       const parts = key.split("-");
-      const entryMonth = parseInt(parts[1], 10) - 1;
+      const entryYear = parseInt(parts[0], 10);
+      const entryMonth = parseInt(parts[1], 10) - 1; // zero-based
       const entryDay = parseInt(parts[2], 10);
 
       if (entryMonth === selectedMonth) {
         const dayIndex = entryDay - 1;
-        dailyActual[dayIndex] += val.sales;
-        dailyAAMPT[dayIndex] = val.aampt;
-        totalSales += val.sales;
-        aamptSum += val.aampt;
-        aamptCount++;
-        tableRows.push({ date: key, sales: val.sales, aampt: val.aampt });
+        dailyActual[dayIndex] += val;
+        totalSales += val;
+        tableRows.push({ date: key, amount: val });
       }
     }
 
@@ -160,7 +150,6 @@
     const currentDay = today.getMonth() === selectedMonth ? today.getDate() : daysInMonth;
     const expectedToDate = dailyExpected[Math.max(currentDay - 1, 0)];
     const delta = totalSales - expectedToDate;
-    const avgAAMPT = aamptCount > 0 ? (aamptSum / aamptCount).toFixed(2) : '0.00';
 
     summaryDiv.innerHTML = `
       <p><strong>Total Sales:</strong> $${totalSales.toFixed(2)}</p>
@@ -168,10 +157,9 @@
       <p class="status ${delta >= 0 ? 'good' : 'bad'}">
         <strong>${delta >= 0 ? 'Above Target by' : 'Below Target by'}:</strong> $${Math.abs(delta).toFixed(2)}
       </p>
-      <p><strong>Average AAMPT:</strong> $${avgAAMPT}</p>
     `;
 
-    renderChart(dailyActual.slice(0, currentDay), dailyExpected.slice(0, currentDay), dailyAAMPT.slice(0, currentDay), aamptGoal);
+    renderChart(dailyActual.slice(0, currentDay), dailyExpected.slice(0, currentDay));
     renderPieChart(totalSales, goal);
     renderTable(tableRows);
   }
@@ -188,14 +176,13 @@
       <h2>Sales Entries</h2>
       <table>
         <thead>
-          <tr><th>Date</th><th>Sales ($)</th><th>AAMPT ($)</th><th>Actions</th></tr>
+          <tr><th>Date</th><th>Sales Amount ($)</th><th>Actions</th></tr>
         </thead>
         <tbody>
           ${rows.map(row => `
             <tr>
               <td>${row.date}</td>
-              <td>${row.sales.toFixed(2)}</td>
-              <td>${row.aampt.toFixed(2)}</td>
+              <td>${row.amount.toFixed(2)}</td>
               <td>
                 <button class="small-btn" onclick="editEntry('${row.date}')">Edit</button>
                 <button class="small-btn" onclick="deleteEntry('${row.date}')">Delete</button>
@@ -210,7 +197,7 @@
   }
 
   let chart;
-  function renderChart(actual, expected, aamptData, aamptGoal) {
+  function renderChart(actual, expected) {
     const labels = actual.map((_, i) => `Day ${i + 1}`);
 
     if (chart) chart.destroy();
@@ -229,8 +216,7 @@
             borderWidth: 2,
             fill: false,
             borderColor: '#66bb6a',
-            tension: 0.3,
-            yAxisID: 'y'
+            tension: 0.3
           },
           {
             label: 'Expected Sales',
@@ -239,27 +225,7 @@
             borderDash: [5, 5],
             fill: false,
             borderColor: '#b0bec5',
-            tension: 0.3,
-            yAxisID: 'y'
-          },
-          {
-            label: 'AAMPT',
-            data: aamptData,
-            borderWidth: 2,
-            fill: false,
-            borderColor: '#42a5f5',
-            tension: 0.3,
-            yAxisID: 'y1'
-          },
-          {
-            label: 'AAMPT Goal',
-            data: Array(aamptData.length).fill(aamptGoal),
-            borderWidth: 1,
-            borderDash: [2, 2],
-            fill: false,
-            borderColor: '#ef5350',
-            tension: 0.3,
-            yAxisID: 'y1'
+            tension: 0.3
           }
         ]
       },
@@ -271,15 +237,7 @@
         },
         scales: {
           y: {
-            beginAtZero: true,
-            position: 'left',
-            title: { display: true, text: 'Sales ($)' }
-          },
-          y1: {
-            beginAtZero: true,
-            position: 'right',
-            title: { display: true, text: 'AAMPT ($)' },
-            grid: { drawOnChartArea: false }
+            beginAtZero: true
           }
         }
       }
