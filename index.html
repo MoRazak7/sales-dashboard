@@ -6,6 +6,38 @@
   <title>Sales Performance Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
+    .tooltip {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+  color: #888;
+  font-size: 0.9em;
+  margin-left: 6px;
+}
+
+.tooltip .tooltiptext {
+  visibility: hidden;
+  width: 240px;
+  background-color: #333;
+  color: #fff;
+  text-align: left;
+  border-radius: 4px;
+  padding: 6px;
+  position: absolute;
+  z-index: 1;
+  bottom: 125%; /* Position above */
+  left: 50%;
+  margin-left: -120px; /* Center the tooltip */
+  opacity: 0;
+  transition: opacity 0.3s;
+  font-size: 0.85em;
+}
+
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+  opacity: 1;
+}
+
     .summary-tiles {
   display: flex;
   flex-wrap: wrap;
