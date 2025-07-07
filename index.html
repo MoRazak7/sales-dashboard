@@ -239,8 +239,15 @@ summaryDiv.innerHTML = `
     <h3>Average AAMPT</h3>
     <p>$${avgAAMPT}</p>
   </div>
-  <div class="tile">
-  <h3>AAMPT Needed Today<br>to Reach Goal</h3>
+<div class="tile">
+  <h3>
+    AAMPT Needed Today
+    <span class="tooltip">ℹ️
+      <span class="tooltiptext">
+        This is the AAMPT per transaction needed on at least 10 transactions today to bring the average AAMPT to the goal amount.
+      </span>
+    </span>
+  </h3>
   <p>$${neededAAMPTPerTransaction} per transaction</p>
 </div>
 
