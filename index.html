@@ -6,6 +6,42 @@
   <title>Sales Performance Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
+    .summary-tiles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.tile {
+  flex: 1 1 200px;
+  background-color: #f8f9fa;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 15px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.tile h3 {
+  margin: 0 0 8px 0;
+  font-size: 1em;
+  color: #555;
+}
+
+.tile p {
+  margin: 0;
+  font-size: 1.2em;
+  font-weight: bold;
+}
+
+.tile.positive {
+  border-left: 4px solid #2e7d32;
+}
+
+.tile.negative {
+  border-left: 4px solid #c62828;
+}
+
     body { font-family: Arial, sans-serif; margin: 40px; }
     h1, h2 { color: #333; }
     input, button, select { padding: 8px; margin: 5px; }
@@ -58,7 +94,7 @@
 
 
   <h2>Progress to $55,000 Revenue</h2>
-  <div id="summary"></div>
+  <div id="summary" class="summary-tiles"></div>
 
   <div class="charts-container">
   <div class="chart-box">
@@ -176,14 +212,28 @@
 const remainingToTarget = Math.max(expectedToDate - totalSales, 0);
 
 summaryDiv.innerHTML = `
-  <p><strong>Total Sales:</strong> $${totalSales.toFixed(2)}</p>
-  <p><strong>Expected by Day ${currentDay}:</strong> $${expectedToDate.toFixed(2)}</p>
-  <p class="status ${delta >= 0 ? 'good' : 'bad'}">
-    <strong>${delta >= 0 ? 'Above Target by' : 'Below Target by'}:</strong> $${Math.abs(delta).toFixed(2)}
-  </p>
-  <p><strong>To Stay on Track, Your Goal by Today Is:</strong> $${remainingToTarget.toFixed(2)}</p>
-  <p><strong>Average AAMPT:</strong> $${avgAAMPT}</p>
+  <div class="tile">
+    <h3>Total Sales</h3>
+    <p>$${totalSales.toFixed(2)}</p>
+  </div>
+  <div class="tile">
+    <h3>Expected by Day ${currentDay}</h3>
+    <p>$${expectedToDate.toFixed(2)}</p>
+  </div>
+  <div class="tile ${delta >= 0 ? 'positive' : 'negative'}">
+    <h3>${delta >= 0 ? 'Above Target by' : 'Below Target by'}</h3>
+    <p>$${Math.abs(delta).toFixed(2)}</p>
+  </div>
+  <div class="tile">
+    <h3>To Stay on Track</h3>
+    <p>$${Math.max(expectedToDate - totalSales, 0).toFixed(2)}</p>
+  </div>
+  <div class="tile">
+    <h3>Average AAMPT</h3>
+    <p>$${avgAAMPT}</p>
+  </div>
 `;
+
 
 
     renderSalesChart(dailyActual.slice(0, currentDay), dailyExpected.slice(0, currentDay));
