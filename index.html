@@ -73,6 +73,11 @@
 .tile.negative {
   border-left: 4px solid #c62828;
 }
+    .tile .tooltip {
+  display: inline-block;
+  margin-top: 4px;
+}
+
 
     body { font-family: Arial, sans-serif; margin: 40px; }
     h1, h2 { color: #333; }
@@ -272,16 +277,15 @@ summaryDiv.innerHTML = `
     <p>$${avgAAMPT}</p>
   </div>
 <div class="tile">
-  <h3>
-    AAMPT Needed Today
-    <span class="tooltip">ℹ️
-      <span class="tooltiptext">
-        This is the AAMPT per transaction needed on at least 10 transactions today to bring the average AAMPT to the goal amount.
-      </span>
+  <h3>AAMPT Needed Today</h3>
+  <div class="tooltip">ℹ️
+    <span class="tooltiptext">
+      This is the AAMPT per transaction needed on at least 10 transactions today to bring the average AAMPT to the goal amount.
     </span>
-  </h3>
+  </div>
   <p>$${neededAAMPTPerTransaction} per transaction</p>
 </div>
+
 
 `;
 
