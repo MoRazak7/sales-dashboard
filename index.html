@@ -325,9 +325,20 @@ summaryDiv.innerHTML = `
   <p>$${projectedSales.toFixed(2)} (${projectedVariance >= 0 ? '+' : ''}$${projectedVariance.toFixed(2)})</p>
 </div>
 <div class="tile ${statusClass}">
-  <h3>Status</h3>
+  <h3>
+    Status
+    <span class="tooltip">ℹ️
+      <span class="tooltiptext">
+        Status is based on your projected month-end sales compared to your goal:<br><br>
+        <strong>On Track:</strong> Projected ≥ 100% of goal<br>
+        <strong>At Risk:</strong> Projected between 90% and 100% of goal<br>
+        <strong>Off Track:</strong> Projected below 90% of goal
+      </span>
+    </span>
+  </h3>
   <p>${statusText}</p>
 </div>
+
 
 
 
