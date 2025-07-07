@@ -73,6 +73,18 @@
 .tile.negative {
   border-left: 4px solid #c62828;
 }
+    .tile.status-ontrack {
+  border-left: 4px solid #2e7d32;
+}
+
+.tile.status-atrisk {
+  border-left: 4px solid #fbc02d;
+}
+
+.tile.status-offtrack {
+  border-left: 4px solid #c62828;
+}
+
     .tile .tooltip {
   display: inline-block;
   margin-top: 4px;
@@ -250,6 +262,26 @@ const totalTransactionsSoFar = aamptCount * transactionsPerDay;
 const targetTotalAAMPT = (totalTransactionsSoFar + transactionsPerDay) * aamptGoal;
 const neededAAMPTToday = Math.max(targetTotalAAMPT - aamptSum, 0);
 const neededAAMPTPerTransaction = (neededAAMPTToday / transactionsPerDay).toFixed(2);
+    // Pacing Forecast Calculations
+const daysPassed = aamptCount > 0 ? aamptCount : currentDay;
+const projectedSales = (totalSales / daysPassed) * daysInMonth;
+const projectedVariance = projectedSales - salesGoal;
+
+// Status Calculation
+let statusText = '';
+let statusClass = '';
+
+if (projectedSales >= salesGoal) {
+  statusText = 'On Track';
+  statusClass = 'status-ontrack';
+} else if (projectedSales >= salesGoal * 0.9) {
+  statusText = 'At Risk';
+  statusClass = 'status-atrisk';
+} else {
+  statusText = 'Off Track';
+  statusClass = 'status-offtrack';
+}
+
 
 
     // Calculate remaining needed to stay on track
@@ -276,6 +308,15 @@ summaryDiv.innerHTML = `
     <h3>Average AAMPT</h3>
     <p>$${avgAAMPT}</p>
   </div>
+  <div class="tile">
+  <h3>Projected Month-End Sales</h3>
+  <p>$${projectedSales.toFixed(2)} (${projectedVariance >= 0 ? '+' : ''}$${projectedVariance.toFixed(2)})</p>
+</div>
+<div class="tile ${statusClass}">
+  <h3>Status</h3>
+  <p>${statusText}</p>
+</div>
+
 
 
 `;
