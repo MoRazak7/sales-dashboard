@@ -208,6 +208,13 @@
     const delta = totalSales - expectedToDate;
     const avgAAMPT = aamptCount > 0 ? (aamptSum / aamptCount).toFixed(2) : '0.00';
 
+    const transactionsPerDay = 10;
+const totalTransactionsSoFar = aamptCount * transactionsPerDay;
+const targetTotalAAMPT = (totalTransactionsSoFar + transactionsPerDay) * aamptGoal;
+const neededAAMPTToday = Math.max(targetTotalAAMPT - aamptSum, 0);
+const neededAAMPTPerTransaction = (neededAAMPTToday / transactionsPerDay).toFixed(2);
+
+
     // Calculate remaining needed to stay on track
 const remainingToTarget = Math.max(expectedToDate - totalSales, 0);
 
@@ -232,6 +239,11 @@ summaryDiv.innerHTML = `
     <h3>Average AAMPT</h3>
     <p>$${avgAAMPT}</p>
   </div>
+  <div class="tile">
+  <h3>AAMPT Needed Today<br>to Reach Goal</h3>
+  <p>$${neededAAMPTPerTransaction} per transaction</p>
+</div>
+
 `;
 
 
