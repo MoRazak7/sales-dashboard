@@ -289,8 +289,11 @@ if (projectedSales >= salesGoal) {
 
 
 
-    // Calculate remaining needed to stay on track
-const remainingToTarget = Math.max(expectedToDate - totalSales, 0);
+// Calculate daily target and deficit
+const dailyTarget = salesGoal / daysInMonth;
+const deficit = Math.max(expectedToDate - totalSales, 0);
+const todayTargetToCatchUp = dailyTarget + deficit;
+
 
 summaryDiv.innerHTML = `
   <div class="tile">
@@ -305,10 +308,10 @@ summaryDiv.innerHTML = `
     <h3>${delta >= 0 ? 'Above Target by' : 'Below Target by'}</h3>
     <p>$${Math.abs(delta).toFixed(2)}</p>
   </div>
-  <div class="tile">
-    <h3>To Stay on Track</h3>
-    <p>$${Math.max(expectedToDate - totalSales, 0).toFixed(2)}</p>
-  </div>
+<div class="tile">
+  <h3>To Stay on Track Today</h3>
+  <p>$${todayTargetToCatchUp.toFixed(2)}</p>
+</div>
   <div class="tile">
     <h3>Average AAMPT</h3>
     <p>$${avgAAMPT}</p>
